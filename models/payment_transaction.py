@@ -34,7 +34,7 @@ class PaymentTransaction(models.Model):
             'reference': self.reference,
             'amount': self.amount,
             'currency': self.currency_id.name,
-            'partner_phone': self.partner_id.mobile or self.partner_id.phone or '',
+            'partner_phone': self.partner_id.phone or '',
         })
         return res
 
