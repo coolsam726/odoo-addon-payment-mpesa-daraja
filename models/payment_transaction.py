@@ -15,10 +15,10 @@ class PaymentTransaction(models.Model):
 
     # Link to the underlying mpesa.transaction so we can track the STK
     # callback state using the same infrastructure as pos_mpesa_daraja.
-    mpesa_transaction_id = fields.Many2one(
+    daraja_transaction_id = fields.Many2one(
         'mpesa.daraja.transaction',
         string='M-Pesa Transaction',
-        readonly=True, ondelete='set null', copy=False,
+        readonly=True, ondelete='restrict', copy=False,
     )
 
     # ------------------------------------------------------------------ #
@@ -100,7 +100,7 @@ class PaymentTransaction(models.Model):
             [('checkout_request_id', '=', checkout_id)], limit=1
         )
         if mpesa_tx:
-            self.sudo().mpesa_transaction_id = mpesa_tx
+            self.sudo().daraja_transaction_id = mpesa_tx
         self._set_pending()
         return {
             'checkout_request_id': checkout_id,
@@ -126,7 +126,7 @@ class PaymentTransaction(models.Model):
         :return: dict {'state': str, 'result_desc': str|False}
         """
         self.ensure_one()
-        mpesa_tx = self.mpesa_transaction_id
+        mpesa_tx = self.daraja_transaction_id
         if not mpesa_tx:
             return {'state': self.state, 'result_desc': False}
 
