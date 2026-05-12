@@ -201,3 +201,27 @@ class PaymentTransaction(models.Model):
                 state_message=payment_data.get('result_desc') or 'STK Push failed.'
             )
         # 'pending' — leave pending; poller will retry
+
+    # ------------------------------------------------------------------ #
+    #  _post_process: link daraja tx and mark it consumed after payment   #
+    # ------------------------------------------------------------------ #
+
+    def _post_process(self):
+        """Override to link and consume the daraja transaction once the
+        account.payment record has been created."""
+        super()._post_process()
+        if self.provider_code != PROVIDER_CODE or self.state != 'done':
+            return
+        daraja_tx = self.daraja_transaction_id
+        if not daraja_tx:
+            return
+        vals = {}
+        if not daraja_tx.payment_transaction_id:
+            vals['payment_transaction_id'] = self.id
+        if not daraja_tx.account_payment_id and self.payment_id:
+            vals['account_payment_id'] = self.payment_id.id
+        if vals:
+            daraja_tx.sudo().write(vals)
+        # Consume the full amount so the transaction is unavailable in POS.
+        if daraja_tx.state not in ('matched',):
+            daraja_tx.sudo()._update_consumption(daraja_tx.amount)
