@@ -6,7 +6,8 @@
         The JS patch reads the phone input and triggers the STK Push via JSON-RPC.
     -->
     <template id="mpesa_inline_form">
-        <div name="o_payment_inline_form">
+        <t t-set="partner_sudo" t-value="request.env['res.partner'].sudo().browse(partner_id)"/>
+        <div>
             <div class="row g-2 mb-2">
                 <div class="col-12">
                     <label class="form-label fw-bold" for="o_mpesa_phone">
@@ -21,6 +22,7 @@
                                name="o_mpesa_phone"
                                class="form-control"
                                placeholder="e.g. 0712345678 or 254712345678"
+                               t-att-value="partner_sudo.phone or ''"
                                autocomplete="tel"
                                maxlength="15"
                                required="required"/>

@@ -48,10 +48,14 @@ class PaymentProvider(models.Model):
     #  Validation                                                          #
     # ------------------------------------------------------------------ #
 
-    @api.constrains('mpesa_config_id', 'code')
+    @api.constrains('mpesa_config_id', 'code', 'state')
     def _check_mpesa_config(self):
         for rec in self:
-            if rec.code == PROVIDER_CODE and not rec.mpesa_config_id:
+            if (
+                rec.code == PROVIDER_CODE
+                and rec.state != 'disabled'
+                and not rec.mpesa_config_id
+            ):
                 raise ValidationError(_(
                     'An M-Pesa Daraja configuration is required for this payment provider.'
                 ))

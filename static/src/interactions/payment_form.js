@@ -47,8 +47,8 @@ patch(PaymentForm.prototype, {
             return;
         }
 
-        // Show a "waiting for PIN" message.
-        this._setMpesaStatus('info', _t('Sending STK Push to %s… Enter your M-Pesa PIN.', phone));
+        // Show a "sending" message while the RPC is in flight.
+        this._setMpesaStatus('info', _t('Sending STK Push to %s…', phone));
 
         let initiateResult;
         try {
@@ -57,16 +57,22 @@ patch(PaymentForm.prototype, {
                 phone: phone,
             });
         } catch (e) {
-            this._displayErrorDialog(_t('M-Pesa error'), e.message || String(e));
+            this._setMpesaStatus('danger', e.message || String(e));
             this._enableButton();
             return;
         }
 
         if (initiateResult.error) {
-            this._displayErrorDialog(_t('M-Pesa error'), initiateResult.error);
+            this._setMpesaStatus('danger', initiateResult.error);
             this._enableButton();
             return;
         }
+
+        // Push delivered — tell the user to check their phone.
+        this._setMpesaStatus(
+            'info',
+            _t('STK Push sent! Check your phone and enter your M-Pesa PIN to complete the payment.')
+        );
 
         // Start polling for the callback result.
         await this._pollMpesaStatus(processingValues.reference);
@@ -114,11 +120,23 @@ patch(PaymentForm.prototype, {
      * @param {string} reference
      */
     async _pollMpesaStatus(reference) {
-        const MAX_POLLS = 30;
+        // Poll for up to 70 s — slightly beyond Safaricom's 60 s STK timeout
+        // so the server has time to detect and record the expiry first.
+        const MAX_POLLS = 23;
         const INTERVAL_MS = 3000;
 
         for (let i = 0; i < MAX_POLLS; i++) {
             await new Promise(resolve => setTimeout(resolve, INTERVAL_MS));
+
+            // Update elapsed time every 15 s so the user knows we're still waiting.
+            const elapsed = Math.round(((i + 1) * INTERVAL_MS) / 1000);
+            if (elapsed % 15 === 0) {
+                this._setMpesaStatus(
+                    'info',
+                    _t('Still waiting for your M-Pesa PIN… (%ss)', elapsed)
+                );
+            }
+
             let result;
             try {
                 result = await rpc('/payment/mpesa/status', { reference });
@@ -141,10 +159,11 @@ patch(PaymentForm.prototype, {
             // state === 'pending' → keep polling
         }
 
-        // Timed out waiting for PIN
+        // Timed out on the client side — the server will have already marked
+        // the mpesa.transaction as failed after Safaricom's 60 s STK expiry.
         this._setMpesaStatus(
             'danger',
-            _t('M-Pesa payment timed out. Please try again.')
+            _t('The M-Pesa prompt expired (60s). Please try again.')
         );
         this._enableButton();
     },

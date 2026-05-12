@@ -5,9 +5,9 @@
     <record id="view_payment_provider_form_mpesa" model="ir.ui.view">
         <field name="name">payment.provider.form.mpesa</field>
         <field name="model">payment.provider</field>
-        <field name="inherit_id" ref="payment.view_payment_provider_form"/>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='provider_specific_fields']" position="inside">
+            <xpath expr="//group[@name='provider_credentials']" position="inside">
                 <group invisible="code != 'mpesa_daraja'">
                     <field name="mpesa_config_id"
                            required="code == 'mpesa_daraja'"

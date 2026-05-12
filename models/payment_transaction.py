@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from datetime import timedelta
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
@@ -110,11 +111,17 @@ class PaymentTransaction(models.Model):
     #  Status polling (called by the frontend JS every few seconds)       #
     # ------------------------------------------------------------------ #
 
+    # Safaricom's built-in STK Push timeout (seconds). After this period
+    # with no callback the push has definitely expired.
+    _MPESA_STK_TIMEOUT = 60
+
     def _mpesa_poll_status(self):
         """Return the current payment state for the frontend poller.
 
         Reconciles the payment.transaction state with the linked
         mpesa.transaction state so the checkout page knows when to redirect.
+        Automatically cancels the transaction if Safaricom's 60-second STK
+        timeout has elapsed with no callback.
 
         :return: dict {'state': str, 'result_desc': str|False}
         """
@@ -124,14 +131,24 @@ class PaymentTransaction(models.Model):
             return {'state': self.state, 'result_desc': False}
 
         mpesa_state = mpesa_tx.state
+
         if mpesa_state in ('success', 'matched', 'partial') and self.state == 'pending':
             # Daraja confirmed payment — advance the provider transaction.
             self.sudo()._apply_updates({'state': 'success'})
+
         elif mpesa_state == 'failed' and self.state == 'pending':
             self.sudo()._apply_updates({
                 'state': 'failed',
                 'result_desc': mpesa_tx.result_desc or 'STK Push failed.',
             })
+
+        elif mpesa_state == 'pending' and self.state == 'pending':
+            # Check whether Safaricom's STK timeout has elapsed.
+            age = fields.Datetime.now() - mpesa_tx.create_date
+            if age > timedelta(seconds=self._MPESA_STK_TIMEOUT):
+                timeout_msg = _('M-Pesa STK Push timed out. The prompt expired — please try again.')
+                mpesa_tx.sudo().write({'state': 'failed', 'result_desc': timeout_msg})
+                self.sudo()._apply_updates({'state': 'failed', 'result_desc': timeout_msg})
 
         return {
             'state': self.state,
