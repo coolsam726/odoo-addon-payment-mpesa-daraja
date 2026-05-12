@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extend the base list view to show the account payment column -->
+    <record id="view_mpesa_transaction_list_payment" model="ir.ui.view">
+        <field name="name">mpesa.transaction.list.payment</field>
+        <field name="model">mpesa.daraja.transaction</field>
+        <field name="inherit_id" ref="mpesa_daraja.view_mpesa_transaction_list"/>
+        <field name="arch" type="xml">
+            <field name="amount_remaining" position="after">
+                <field name="account_payment_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Extend the base form view to add the "Link to Accounting Payment" section -->
+    <record id="view_mpesa_transaction_form_payment" model="ir.ui.view">
+        <field name="name">mpesa.transaction.form.payment</field>
+        <field name="model">mpesa.daraja.transaction</field>
+        <field name="inherit_id" ref="mpesa_daraja.view_mpesa_transaction_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert Accounting Payment link group before the notebook -->
+            <notebook position="before">
+                <group string="Link to Accounting Payment">
+                    <field name="payment_transaction_id" readonly="1"/>
+                    <field name="account_payment_id" readonly="1"/>
+                </group>
+            </notebook>
+        </field>
+    </record>
+
+    <!-- Extend the base search view to add account_payment_id filter -->
+    <record id="view_mpesa_transaction_search_payment" model="ir.ui.view">
+        <field name="name">mpesa.transaction.search.payment</field>
+        <field name="model">mpesa.daraja.transaction</field>
+        <field name="inherit_id" ref="mpesa_daraja.view_mpesa_transaction_search"/>
+        <field name="arch" type="xml">
+            <field name="bill_ref_number" position="after">
+                <field name="payment_transaction_id"/>
+                <field name="account_payment_id"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

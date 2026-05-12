@@ -40,6 +40,7 @@ controller, form rendering, and transaction lifecycle is pending.
         'security/ir.model.access.csv',
         'views/payment_provider_views.xml',
         'views/payment_mpesa_templates.xml',
+        'views/mpesa_transaction_views.xml',
         'data/payment_method_data.xml',
         'data/payment_provider_data.xml',
     ],
