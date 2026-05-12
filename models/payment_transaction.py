@@ -18,7 +18,7 @@ class PaymentTransaction(models.Model):
     mpesa_transaction_id = fields.Many2one(
         'mpesa.daraja.transaction',
         string='M-Pesa Transaction',
-        readonly=True, ondelete='restrict', copy=False,
+        readonly=True, ondelete='set null', copy=False,
     )
 
     # ------------------------------------------------------------------ #
