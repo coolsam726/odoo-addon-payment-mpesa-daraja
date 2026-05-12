@@ -183,6 +183,19 @@ class PaymentTransaction(models.Model):
                 if partner and (not partner.name or partner == self.env.ref('base.public_partner', raise_if_not_found=False)):
                     partner.sudo().name = customer_name
             self._set_done()
+            # Trigger post-processing immediately so the account.payment is
+            # created in the same request rather than waiting for the cron.
+            # Guard with is_post_processed to avoid double-processing.
+            if not self.is_post_processed:
+                try:
+                    self._post_process()
+                except Exception:
+                    # Non-fatal: cron will retry. Log so the admin can diagnose
+                    # (most common cause: no journal configured on the provider).
+                    _logger.exception(
+                        'M-Pesa: _post_process failed for tx %s — is a journal '
+                        'configured on the payment provider?', self.reference
+                    )
         elif state in ('failed', 'error'):
             self._set_canceled(
                 state_message=payment_data.get('result_desc') or 'STK Push failed.'

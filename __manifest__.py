@@ -34,6 +34,7 @@ controller, form rendering, and transaction lifecycle is pending.
     'depends': [
         'mpesa_daraja',
         'payment',
+        'account_payment',
     ],
     'data': [
         'security/ir.model.access.csv',
