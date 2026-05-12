@@ -1,0 +1,21 @@
+# pycache folders
+__pycache__/
+**/__pycache__/
+# compiled python files
+*.pyc
+*.pyo
+*.pyd
+# C extensions
+*.so
+# distribution / packaging
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+sdist
+var
+wheels
+share/python-wheels
+*.egg-info

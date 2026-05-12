@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Inline form rendered on the checkout page when the customer selects M-Pesa.
+        The JS patch reads the phone input and triggers the STK Push via JSON-RPC.
+    -->
+    <template id="mpesa_inline_form">
+        <div name="o_payment_inline_form">
+            <div class="row g-2 mb-2">
+                <div class="col-12">
+                    <label class="form-label fw-bold" for="o_mpesa_phone">
+                        Safaricom Phone Number
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa fa-mobile fa-lg"/>
+                        </span>
+                        <input type="tel"
+                               id="o_mpesa_phone"
+                               name="o_mpesa_phone"
+                               class="form-control"
+                               placeholder="e.g. 0712345678 or 254712345678"
+                               autocomplete="tel"
+                               maxlength="15"
+                               required="required"/>
+                    </div>
+                    <div class="form-text text-muted">
+                        You will receive an STK Push notification on your phone. Enter your M-Pesa PIN to complete the payment.
+                    </div>
+                </div>
+            </div>
+            <!-- Status area — shown by JS after push is initiated -->
+            <div id="o_mpesa_status" class="d-none alert" role="alert"/>
+        </div>
+    </template>
+
+</odoo>
