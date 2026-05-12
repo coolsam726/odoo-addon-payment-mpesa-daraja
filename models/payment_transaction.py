@@ -134,14 +134,8 @@ class PaymentTransaction(models.Model):
 
         if mpesa_state in ('success', 'matched', 'partial') and self.state == 'pending':
             # Daraja confirmed payment — advance the provider transaction.
-            # Build customer name from Safaricom name fields (present on C2B records;
-            # may be absent on pure-STK records until C2B fires).
-            name_parts = filter(None, [
-                mpesa_tx.first_name,
-                mpesa_tx.middle_name,
-                mpesa_tx.last_name,
-            ])
-            customer_name = ' '.join(name_parts).strip() or False
+            # Daraja v3 C2B only sends FirstName; STK callback sends no name at all.
+            customer_name = mpesa_tx.first_name or False
             self._apply_updates({
                 'state': 'success',
                 'provider_reference': mpesa_tx.mpesa_receipt or False,
