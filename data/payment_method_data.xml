@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- payment.method: frontend display record (payment framework) -->
     <record id="payment_method_mpesa" model="payment.method">
         <field name="name">M-Pesa</field>
         <field name="code">mpesa_daraja</field>
@@ -10,6 +11,17 @@
         <field name="support_express_checkout">False</field>
         <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
+    </record>
+
+    <!-- account.payment.method: accounting-level record required by
+         account_payment._ensure_payment_method_line so that an inbound
+         payment method line is created on the journal when the provider
+         is configured. Without this record, account.payment cannot be
+         created because payment_method_line_id would be empty. -->
+    <record id="account_payment_method_mpesa" model="account.payment.method">
+        <field name="name">M-Pesa (Daraja)</field>
+        <field name="code">mpesa_daraja</field>
+        <field name="payment_type">inbound</field>
     </record>
 
 </odoo>

@@ -18,10 +18,11 @@ PROVIDER_CODE = 'mpesa_daraja'
 
 def post_init_hook(env):
     """Create the default M-Pesa Daraja payment provider if absent."""
-    # payment module helper: creates/enables the provider record.
-    # Signature: create_or_enable_payment_provider(env, provider_code)
-    # Available in Odoo 17+; adjust for your exact Odoo version if needed.
     _logger.info('payment_mpesa_daraja: running post_init_hook')
+    # _setup_provider creates the account.payment.method record (code=mpesa_daraja,
+    # payment_type=inbound) that _ensure_payment_method_line requires to create the
+    # inbound payment method line on the journal.
+    env['payment.provider']._setup_provider(PROVIDER_CODE)
     existing = env['payment.provider'].search([('code', '=', PROVIDER_CODE)], limit=1)
     if not existing:
         env['payment.provider'].create({
@@ -34,4 +35,5 @@ def post_init_hook(env):
 def uninstall_hook(env):
     """Archive (not delete) the M-Pesa payment provider on uninstall."""
     _logger.info('payment_mpesa_daraja: running uninstall_hook')
+    env['payment.provider']._remove_provider(PROVIDER_CODE)
     reset_payment_provider(env, PROVIDER_CODE)
