@@ -32,7 +32,7 @@ PROVIDER_CODE = 'mpesa_daraja'
 class MpesaPaymentController(http.Controller):
 
     @http.route(
-        '/payment/mpesa/initiate',
+        '/payment/mpesa_daraja/initiate',
         type='jsonrpc',
         auth='public',
         methods=['POST'],
@@ -64,7 +64,7 @@ class MpesaPaymentController(http.Controller):
         return result
 
     @http.route(
-        '/payment/mpesa/status',
+        '/payment/mpesa_daraja/status',
         type='jsonrpc',
         auth='public',
         methods=['POST'],

@@ -52,7 +52,7 @@ patch(PaymentForm.prototype, {
 
         let initiateResult;
         try {
-            initiateResult = await rpc('/payment/mpesa/initiate', {
+            initiateResult = await rpc('/payment/mpesa_daraja/initiate', {
                 reference: processingValues.reference,
                 phone: phone,
             });
@@ -139,7 +139,7 @@ patch(PaymentForm.prototype, {
 
             let result;
             try {
-                result = await rpc('/payment/mpesa/status', { reference });
+                result = await rpc('/payment/mpesa_daraja/status', { reference });
             } catch (e) {
                 // Network hiccup — keep polling
                 continue;
