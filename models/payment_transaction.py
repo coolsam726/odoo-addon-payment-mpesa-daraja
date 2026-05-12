@@ -134,7 +134,10 @@ class PaymentTransaction(models.Model):
 
         if mpesa_state in ('success', 'matched', 'partial') and self.state == 'pending':
             # Daraja confirmed payment — advance the provider transaction.
-            self._apply_updates({'state': 'success'})
+            self._apply_updates({
+                'state': 'success',
+                'provider_reference': mpesa_tx.mpesa_receipt or False,
+            })
 
         elif mpesa_state == 'failed' and self.state == 'pending':
             self._apply_updates({
@@ -164,6 +167,11 @@ class PaymentTransaction(models.Model):
             return super()._apply_updates(payment_data)
         state = payment_data.get('state')
         if state in ('success', 'matched', 'partial'):
+            # Write the M-Pesa receipt as provider_reference so the account.payment
+            # memo and reconciliation report show the correct receipt number.
+            receipt = payment_data.get('provider_reference')
+            if receipt and not self.provider_reference:
+                self.provider_reference = receipt
             self._set_done()
         elif state in ('failed', 'error'):
             self._set_canceled(
