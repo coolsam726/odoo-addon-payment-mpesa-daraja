@@ -16,7 +16,7 @@ class PaymentTransaction(models.Model):
     # Link to the underlying mpesa.transaction so we can track the STK
     # callback state using the same infrastructure as pos_mpesa_daraja.
     mpesa_transaction_id = fields.Many2one(
-        'mpesa.transaction',
+        'mpesa.daraja.transaction',
         string='M-Pesa Transaction',
         readonly=True, ondelete='restrict', copy=False,
     )
@@ -95,8 +95,8 @@ class PaymentTransaction(models.Model):
         if not checkout_id:
             raise UserError(_('M-Pesa did not return a CheckoutRequestID.'))
 
-        # Link the newly-created mpesa.transaction record.
-        mpesa_tx = self.env['mpesa.transaction'].sudo().search(
+        # Link the newly-created mpesa.daraja.transaction record.
+        mpesa_tx = self.env['mpesa.daraja.transaction'].sudo().search(
             [('checkout_request_id', '=', checkout_id)], limit=1
         )
         if mpesa_tx:
