@@ -134,9 +134,18 @@ class PaymentTransaction(models.Model):
 
         if mpesa_state in ('success', 'matched', 'partial') and self.state == 'pending':
             # Daraja confirmed payment — advance the provider transaction.
+            # Build customer name from Safaricom name fields (present on C2B records;
+            # may be absent on pure-STK records until C2B fires).
+            name_parts = filter(None, [
+                mpesa_tx.first_name,
+                mpesa_tx.middle_name,
+                mpesa_tx.last_name,
+            ])
+            customer_name = ' '.join(name_parts).strip() or False
             self._apply_updates({
                 'state': 'success',
                 'provider_reference': mpesa_tx.mpesa_receipt or False,
+                'customer_name': customer_name,
             })
 
         elif mpesa_state == 'failed' and self.state == 'pending':
@@ -172,6 +181,13 @@ class PaymentTransaction(models.Model):
             receipt = payment_data.get('provider_reference')
             if receipt and not self.provider_reference:
                 self.provider_reference = receipt
+            # Populate partner name if Safaricom returned one and the current
+            # partner is the public user or has no meaningful name set.
+            customer_name = payment_data.get('customer_name')
+            if customer_name:
+                partner = self.partner_id
+                if partner and (not partner.name or partner == self.env.ref('base.public_partner', raise_if_not_found=False)):
+                    partner.sudo().name = customer_name
             self._set_done()
         elif state in ('failed', 'error'):
             self._set_canceled(
