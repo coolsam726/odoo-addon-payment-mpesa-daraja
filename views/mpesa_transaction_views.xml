@@ -19,10 +19,21 @@
         <field name="model">mpesa.daraja.transaction</field>
         <field name="inherit_id" ref="mpesa_daraja.view_mpesa_transaction_form"/>
         <field name="arch" type="xml">
+            <!-- "Apply Payment Link" button in header -->
+            <button name="action_reset_to_pending" position="after">
+                <button name="action_apply_payment_link" type="object"
+                        string="Apply Payment Link"
+                        class="btn-primary"
+                        invisible="not payment_transaction_id or state == 'matched'"
+                        groups="base.group_system"
+                        confirm="This will complete the linked payment transaction and create an accounting payment. Proceed?"/>
+            </button>
             <!-- Insert Accounting Payment link group before the notebook -->
             <notebook position="before">
                 <group string="Link to Accounting Payment">
-                    <field name="payment_transaction_id" readonly="1"/>
+                    <!-- Editable when a link hasn't been applied yet -->
+                    <field name="payment_transaction_id"
+                           readonly="state == 'matched' or bool(account_payment_id)"/>
                     <field name="account_payment_id" readonly="1"/>
                 </group>
             </notebook>
